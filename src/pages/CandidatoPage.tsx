@@ -32,8 +32,7 @@ function GrupoSection({
 }) {
   const [aberto, setAberto] = useState(false)
 
-  const aprovadas = entregas.filter(e => aceitaNota(e.secao) && e.nota !== null && e.nota !== 'D').length
-  const comNota = entregas.filter(e => aceitaNota(e.secao)).length
+  const entregues = entregas.filter(e => e.status === 'entregue' || e.status === 'aprovado').length
   const temAlerta = entregas.some(e => e.status === 'reprovado' || e.nota === 'D')
   const temEntregue = entregas.some(e => e.status === 'entregue' || e.status === 'aprovado')
 
@@ -47,15 +46,13 @@ function GrupoSection({
         <div className="flex items-center gap-3 min-w-0">
           <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
             temAlerta ? 'bg-red-400' :
-            comNota > 0 && aprovadas === comNota ? 'bg-teal-500' :
+            entregues === entregas.length && entregas.length > 0 ? 'bg-teal-500' :
             temEntregue ? 'bg-blue-400' : 'bg-gray-300'
           }`} />
           <span className="text-sm font-semibold text-gray-800">{grupo.label}</span>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
-          {comNota > 0 && (
-            <span className="text-xs text-gray-400">{aprovadas}/{comNota}</span>
-          )}
+          <span className="text-xs text-gray-400">{entregues}/{entregas.length}</span>
           <span className="text-xs text-gray-400">{entregas.length} {entregas.length === 1 ? 'item' : 'itens'}</span>
           <svg
             className={`w-4 h-4 text-gray-400 transition-transform ${aberto ? 'rotate-180' : ''}`}
@@ -183,7 +180,7 @@ export function CandidatoPage() {
             </div>
             <div className="text-right">
               <p className="text-xs text-gray-500">
-                {entregas.filter(e => aceitaNota(e.secao) && e.nota !== null && e.nota !== 'D').length} / {entregas.filter(e => aceitaNota(e.secao)).length} aprovadas
+                {entregas.filter(e => e.status === 'entregue' || e.status === 'aprovado').length} / {entregas.length} entregues
               </p>
               <p className="text-xs text-gray-400 mt-0.5 capitalize">
                 Ordenação {candidato.modalidade}

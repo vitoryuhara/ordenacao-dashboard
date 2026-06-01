@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import toast from 'react-hot-toast'
 import { getEntregas, atualizarEntrega, serverTimestamp, Timestamp } from '../lib/firebase'
-import { SECOES_POR_MODALIDADE, aceitaNota } from '../lib/constants'
+import { SECOES_POR_MODALIDADE } from '../lib/constants'
 import type { Entrega, Modalidade, StatusEntrega } from '../types'
 
 export function useEntregas(candidatoId: string, modalidade: Modalidade) {
@@ -58,9 +58,8 @@ export function useEntregas(candidatoId: string, modalidade: Modalidade) {
     [atualizar],
   )
 
-  const entregasComNota = entregas.filter(e => aceitaNota(e.secao))
   const progresso = Math.round(
-    (entregasComNota.filter(e => e.nota !== null && e.nota !== 'D').length / Math.max(entregasComNota.length, 1)) * 100,
+    (entregas.filter(e => e.status === 'entregue' || e.status === 'aprovado').length / Math.max(entregas.length, 1)) * 100,
   )
 
   return { entregas, carregando, atualizar, marcarEntregue, progresso }
