@@ -1,5 +1,5 @@
 import { useState, FormEvent } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Navigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useAuth } from '../hooks/useAuth'
 
@@ -9,8 +9,7 @@ export function AdminLoginPage() {
   const navigate = useNavigate()
 
   if (autenticado) {
-    void navigate('/')
-    return null
+    return <Navigate to="/" replace />
   }
 
   const handleSubmit = (e: FormEvent) => {
