@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { CandidatoCard } from '../components/candidato/CandidatoCard'
 import { NovoCandidatoModal } from '../components/candidato/NovoCandidatoModal'
+import { EditarCandidatoModal } from '../components/candidato/EditarCandidatoModal'
+import { ConfirmarExclusaoModal } from '../components/candidato/ConfirmarExclusaoModal'
 import { CardSkeleton } from '../components/ui/Skeleton'
 import { EmptyState } from '../components/ui/EmptyState'
 import { useCandidatos } from '../hooks/useCandidatos'
@@ -9,17 +11,36 @@ import { useAuth } from '../hooks/useAuth'
 import { useEntregas } from '../hooks/useEntregas'
 import type { Modalidade, Candidato } from '../types'
 
-function ProgressoWrapper({ candidato }: { candidato: Candidato }) {
+function ProgressoWrapper({
+  candidato,
+  onEditar,
+  onDeletar,
+}: {
+  candidato: Candidato
+  onEditar: (c: Candidato) => void
+  onDeletar: (c: Candidato) => void
+}) {
   const { progresso } = useEntregas(candidato.id, candidato.modalidade)
-  return <CandidatoCard candidato={candidato} progresso={progresso} isCoord />
+  return (
+    <CandidatoCard
+      candidato={candidato}
+      progresso={progresso}
+      isCoord
+      onEditar={() => onEditar(candidato)}
+      onDeletar={() => onDeletar(candidato)}
+    />
+  )
 }
 
 export function DashboardPage() {
   const { modalidade } = useParams<{ modalidade: string }>()
   const mod = (modalidade as Modalidade) ?? 'pastoral'
-  const { candidatos, carregando, criar } = useCandidatos(mod)
+  const { candidatos, carregando, criar, editar, deletar } = useCandidatos(mod)
   const { autenticado, logout } = useAuth()
-  const [modalAberto, setModalAberto] = useState(false)
+
+  const [modalNovoAberto, setModalNovoAberto] = useState(false)
+  const [candidatoEditando, setCandidatoEditando] = useState<Candidato | null>(null)
+  const [candidatoDeletando, setCandidatoDeletando] = useState<Candidato | null>(null)
 
   const titulo = mod === 'pastoral' ? 'Ordenação Pastoral' : 'Ordenação Presbiteral'
 
@@ -43,7 +64,7 @@ export function DashboardPage() {
             {autenticado ? (
               <>
                 <button
-                  onClick={() => setModalAberto(true)}
+                  onClick={() => setModalNovoAberto(true)}
                   className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -103,7 +124,7 @@ export function DashboardPage() {
               : 'Não há candidatos nesta modalidade ainda.'}
             acao={autenticado ? (
               <button
-                onClick={() => setModalAberto(true)}
+                onClick={() => setModalNovoAberto(true)}
                 className="px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-lg hover:bg-teal-700 transition-colors"
               >
                 Novo candidato
@@ -114,18 +135,44 @@ export function DashboardPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {candidatos.map(c => (
               autenticado
-                ? <ProgressoWrapper key={c.id} candidato={c} />
+                ? (
+                  <ProgressoWrapper
+                    key={c.id}
+                    candidato={c}
+                    onEditar={setCandidatoEditando}
+                    onDeletar={setCandidatoDeletando}
+                  />
+                )
                 : <CandidatoCard key={c.id} candidato={c} progresso={0} />
             ))}
           </div>
         )}
       </main>
 
-      {modalAberto && (
+      {modalNovoAberto && (
         <NovoCandidatoModal
           modalidade={mod}
           onCriar={async (dados) => { await criar(dados) }}
-          onFechar={() => setModalAberto(false)}
+          onFechar={() => setModalNovoAberto(false)}
+        />
+      )}
+
+      {candidatoEditando && (
+        <EditarCandidatoModal
+          candidato={candidatoEditando}
+          onSalvar={async (dados) => { await editar(candidatoEditando.id, dados) }}
+          onFechar={() => setCandidatoEditando(null)}
+        />
+      )}
+
+      {candidatoDeletando && (
+        <ConfirmarExclusaoModal
+          nome={candidatoDeletando.nome}
+          onConfirmar={async () => {
+            await deletar(candidatoDeletando.id)
+            setCandidatoDeletando(null)
+          }}
+          onCancelar={() => setCandidatoDeletando(null)}
         />
       )}
     </div>

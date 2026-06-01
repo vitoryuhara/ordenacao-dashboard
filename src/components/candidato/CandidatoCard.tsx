@@ -8,9 +8,11 @@ interface CandidatoCardProps {
   candidato: Candidato
   progresso: number
   isCoord?: boolean
+  onEditar?: () => void
+  onDeletar?: () => void
 }
 
-export function CandidatoCard({ candidato, progresso, isCoord = false }: CandidatoCardProps) {
+export function CandidatoCard({ candidato, progresso, isCoord = false, onEditar, onDeletar }: CandidatoCardProps) {
   return (
     <Link
       to={`/candidato/${candidato.id}`}
@@ -38,9 +40,23 @@ export function CandidatoCard({ candidato, progresso, isCoord = false }: Candida
       </div>
 
       {isCoord && (
-        <p className="text-xs text-gray-400 mt-3 text-right">
-          ID: {candidato.id}
-        </p>
+        <div className="mt-3 flex items-center justify-between">
+          <p className="text-xs text-gray-400">ID: {candidato.id}</p>
+          <div className="flex gap-2">
+            <button
+              onClick={e => { e.preventDefault(); e.stopPropagation(); onEditar?.() }}
+              className="text-xs text-gray-400 hover:text-teal-600 font-medium transition-colors px-1"
+            >
+              Editar
+            </button>
+            <button
+              onClick={e => { e.preventDefault(); e.stopPropagation(); onDeletar?.() }}
+              className="text-xs text-gray-400 hover:text-red-600 font-medium transition-colors px-1"
+            >
+              Excluir
+            </button>
+          </div>
+        </div>
       )}
     </Link>
   )

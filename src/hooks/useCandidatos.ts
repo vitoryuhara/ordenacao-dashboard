@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import toast from 'react-hot-toast'
-import { getCandidatos, criarCandidato, atualizarStatusCandidato, deletarCandidato } from '../lib/firebase'
+import { getCandidatos, criarCandidato, atualizarStatusCandidato, editarCandidato, deletarCandidato } from '../lib/firebase'
 import type { Candidato, Modalidade, StatusCandidato } from '../types'
 
 export function useCandidatos(modalidade?: Modalidade) {
@@ -45,6 +45,22 @@ export function useCandidatos(modalidade?: Modalidade) {
     [carregar],
   )
 
+  const editar = useCallback(
+    async (id: string, dados: Pick<Candidato, 'nome' | 'localidade' | 'dataInicio' | 'status'>) => {
+      setCandidatos(prev =>
+        prev.map(c => (c.id === id ? { ...c, ...dados } : c)),
+      )
+      try {
+        await editarCandidato(id, dados)
+        toast.success('Candidato atualizado')
+      } catch {
+        toast.error('Erro ao atualizar candidato')
+        await carregar()
+      }
+    },
+    [carregar],
+  )
+
   const deletar = useCallback(
     async (id: string) => {
       setCandidatos(prev => prev.filter(c => c.id !== id))
@@ -58,5 +74,5 @@ export function useCandidatos(modalidade?: Modalidade) {
     [carregar],
   )
 
-  return { candidatos, carregando, criar, atualizarStatus, deletar, recarregar: carregar }
+  return { candidatos, carregando, criar, editar, atualizarStatus, deletar, recarregar: carregar }
 }

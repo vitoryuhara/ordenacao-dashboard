@@ -84,6 +84,16 @@ export async function atualizarStatusCandidato(
   })
 }
 
+export async function editarCandidato(
+  id: string,
+  dados: Pick<Candidato, 'nome' | 'localidade' | 'dataInicio' | 'status'>,
+): Promise<void> {
+  await updateDoc(doc(db, 'candidatos', id), {
+    ...dados,
+    updatedAt: serverTimestamp(),
+  })
+}
+
 export async function deletarCandidato(id: string): Promise<void> {
   // Remove entregas antes de remover o candidato
   const entregasSnap = await getDocs(collection(db, 'candidatos', id, 'entregas'))
