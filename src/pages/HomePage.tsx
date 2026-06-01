@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth'
 
 export function HomePage() {
+  const { autenticado, logout } = useAuth()
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <header className="bg-white border-b border-gray-100">
@@ -17,12 +20,21 @@ export function HomePage() {
               <p className="text-xs text-gray-500">Zion Church</p>
             </div>
           </div>
-          <Link
-            to="/admin"
-            className="text-sm text-gray-500 hover:text-teal-700 font-medium transition-colors"
-          >
-            Acesso coordenador
-          </Link>
+          {autenticado ? (
+            <button
+              onClick={logout}
+              className="text-sm text-gray-500 hover:text-gray-700 font-medium transition-colors"
+            >
+              Sair
+            </button>
+          ) : (
+            <Link
+              to="/admin"
+              className="text-sm text-gray-500 hover:text-teal-700 font-medium transition-colors"
+            >
+              Acesso coordenador
+            </Link>
+          )}
         </div>
       </header>
 
