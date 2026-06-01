@@ -8,8 +8,81 @@ import { EntregaCard } from '../components/entrega/EntregaCard'
 import { ProgressBar } from '../components/ui/ProgressBar'
 import { Badge } from '../components/ui/Badge'
 import { CardSkeleton } from '../components/ui/Skeleton'
-import { LABEL_STATUS_CANDIDATO, COR_STATUS_CANDIDATO, NOTAS_CONCEITO, NOTA_COR, aceitaNota } from '../lib/constants'
+import {
+  LABEL_STATUS_CANDIDATO,
+  COR_STATUS_CANDIDATO,
+  NOTAS_CONCEITO,
+  NOTA_COR,
+  aceitaNota,
+  GRUPOS_POR_MODALIDADE,
+  GrupoEntregas,
+} from '../lib/constants'
 import type { Candidato, Entrega, NotaConceito } from '../types'
+
+function GrupoSection({
+  grupo,
+  entregas,
+  isCoord,
+  onAtualizar,
+}: {
+  grupo: GrupoEntregas
+  entregas: Entrega[]
+  isCoord: boolean
+  onAtualizar: (id: string, dados: Partial<Omit<Entrega, 'id' | 'secao' | 'updatedAt'>>) => void
+}) {
+  const [aberto, setAberto] = useState(false)
+
+  const aprovadas = entregas.filter(e => aceitaNota(e.secao) && e.nota !== null && e.nota !== 'D').length
+  const comNota = entregas.filter(e => aceitaNota(e.secao)).length
+  const temAlerta = entregas.some(e => e.status === 'reprovado' || e.nota === 'D')
+  const temEntregue = entregas.some(e => e.status === 'entregue' || e.status === 'aprovado')
+
+  return (
+    <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setAberto(v => !v)}
+        className="w-full flex items-center justify-between px-5 py-3.5 text-left hover:bg-gray-50 transition-colors"
+      >
+        <div className="flex items-center gap-3 min-w-0">
+          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+            temAlerta ? 'bg-red-400' :
+            comNota > 0 && aprovadas === comNota ? 'bg-teal-500' :
+            temEntregue ? 'bg-blue-400' : 'bg-gray-300'
+          }`} />
+          <span className="text-sm font-semibold text-gray-800">{grupo.label}</span>
+        </div>
+        <div className="flex items-center gap-3 flex-shrink-0">
+          {comNota > 0 && (
+            <span className="text-xs text-gray-400">{aprovadas}/{comNota}</span>
+          )}
+          <span className="text-xs text-gray-400">{entregas.length} {entregas.length === 1 ? 'item' : 'itens'}</span>
+          <svg
+            className={`w-4 h-4 text-gray-400 transition-transform ${aberto ? 'rotate-180' : ''}`}
+            fill="none" viewBox="0 0 24 24" stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </div>
+      </button>
+
+      {aberto && (
+        <div className="border-t border-gray-100 divide-y divide-gray-50">
+          {entregas.map(entrega => (
+            <EntregaCard
+              key={entrega.id}
+              entrega={entrega}
+              isCoord={isCoord}
+              onAtualizar={isCoord
+                ? (dados) => onAtualizar(entrega.id, dados)
+                : undefined}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function CandidatoPage() {
   const { id } = useParams<{ id: string }>()
@@ -49,6 +122,13 @@ export function CandidatoPage() {
     : notasAvaliadas.reduce((pior, n) =>
         NOTAS_CONCEITO.indexOf(n) > NOTAS_CONCEITO.indexOf(pior) ? n : pior
       )
+
+  const grupos = candidato ? GRUPOS_POR_MODALIDADE[candidato.modalidade] : []
+
+  const entregasPorGrupo = (grupo: GrupoEntregas) =>
+    grupo.secoes
+      .map(secao => entregas.find(e => e.secao === secao))
+      .filter((e): e is Entrega => e !== undefined)
 
   if (carregandoCandidato) {
     return (
@@ -133,21 +213,19 @@ export function CandidatoPage() {
           <h2 className="text-sm font-semibold text-gray-700 mb-3">Seções de entrega</h2>
           {carregando ? (
             <div className="space-y-3">
-              {Array.from({ length: 4 }).map((_, i) => <CardSkeleton key={i} />)}
+              {Array.from({ length: 6 }).map((_, i) => <CardSkeleton key={i} />)}
             </div>
           ) : (
             <div className="space-y-3">
-              {entregas.map(entrega => (
-                <EntregaCard
-                  key={entrega.id}
-                  entrega={entrega}
+              {grupos.map(grupo => (
+                <GrupoSection
+                  key={grupo.label}
+                  grupo={grupo}
+                  entregas={entregasPorGrupo(grupo)}
                   isCoord={autenticado}
-                  onAtualizar={autenticado
-                    ? (dados) => void atualizar(
-                        entrega.id,
-                        dados as Partial<Omit<Entrega, 'id' | 'secao' | 'updatedAt'>>,
-                      )
-                    : undefined}
+                  onAtualizar={(entregaId, dados) =>
+                    void atualizar(entregaId, dados as Partial<Omit<Entrega, 'id' | 'secao' | 'updatedAt'>>)
+                  }
                 />
               ))}
             </div>
