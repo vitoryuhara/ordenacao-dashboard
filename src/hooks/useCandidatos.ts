@@ -11,7 +11,8 @@ export function useCandidatos(modalidade?: Modalidade) {
     setCarregando(true)
     try {
       const todos = await getCandidatos()
-      setCandidatos(modalidade ? todos.filter(c => c.modalidade === modalidade) : todos)
+      const filtrados = modalidade ? todos.filter(c => c.modalidade === modalidade) : todos
+      setCandidatos(filtrados.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')))
     } catch {
       toast.error('Erro ao carregar candidatos')
     } finally {
@@ -33,7 +34,7 @@ export function useCandidatos(modalidade?: Modalidade) {
   const atualizarStatus = useCallback(
     async (id: string, status: StatusCandidato) => {
       setCandidatos(prev =>
-        prev.map(c => (c.id === id ? { ...c, status } : c)),
+        prev.map(c => (c.id === id ? { ...c, status } : c)).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')),
       )
       try {
         await atualizarStatusCandidato(id, status)
@@ -48,7 +49,7 @@ export function useCandidatos(modalidade?: Modalidade) {
   const editar = useCallback(
     async (id: string, dados: Pick<Candidato, 'nome' | 'localidade' | 'dataInicio' | 'status'>) => {
       setCandidatos(prev =>
-        prev.map(c => (c.id === id ? { ...c, ...dados } : c)),
+        prev.map(c => (c.id === id ? { ...c, ...dados } : c)).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR')),
       )
       try {
         await editarCandidato(id, dados)
