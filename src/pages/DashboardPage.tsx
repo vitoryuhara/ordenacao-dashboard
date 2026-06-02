@@ -13,21 +13,23 @@ import type { Modalidade, Candidato } from '../types'
 
 function ProgressoWrapper({
   candidato,
+  isCoord = false,
   onEditar,
   onDeletar,
 }: {
   candidato: Candidato
-  onEditar: (c: Candidato) => void
-  onDeletar: (c: Candidato) => void
+  isCoord?: boolean
+  onEditar?: (c: Candidato) => void
+  onDeletar?: (c: Candidato) => void
 }) {
   const { progresso } = useEntregas(candidato.id, candidato.modalidade)
   return (
     <CandidatoCard
       candidato={candidato}
       progresso={progresso}
-      isCoord
-      onEditar={() => onEditar(candidato)}
-      onDeletar={() => onDeletar(candidato)}
+      isCoord={isCoord}
+      onEditar={onEditar ? () => onEditar(candidato) : undefined}
+      onDeletar={onDeletar ? () => onDeletar(candidato) : undefined}
     />
   )
 }
@@ -134,16 +136,13 @@ export function DashboardPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {candidatos.map(c => (
-              autenticado
-                ? (
-                  <ProgressoWrapper
-                    key={c.id}
-                    candidato={c}
-                    onEditar={setCandidatoEditando}
-                    onDeletar={setCandidatoDeletando}
-                  />
-                )
-                : <CandidatoCard key={c.id} candidato={c} progresso={0} />
+              <ProgressoWrapper
+                key={c.id}
+                candidato={c}
+                isCoord={autenticado}
+                onEditar={autenticado ? setCandidatoEditando : undefined}
+                onDeletar={autenticado ? setCandidatoDeletando : undefined}
+              />
             ))}
           </div>
         )}
