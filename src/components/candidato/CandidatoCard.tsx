@@ -20,7 +20,7 @@ export function CandidatoCard({ candidato, progresso, isCoord = false, onEditar,
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="font-semibold text-gray-900 truncate group-hover:text-teal-700 transition-colors">
+          <h3 className="font-semibold text-gray-900 group-hover:text-teal-700 transition-colors">
             {candidato.nome}
           </h3>
           <p className="text-sm text-gray-500 mt-0.5">{candidato.localidade}</p>

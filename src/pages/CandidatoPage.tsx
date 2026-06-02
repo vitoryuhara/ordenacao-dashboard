@@ -161,7 +161,7 @@ export function CandidatoPage() {
             </svg>
           </Link>
           <div className="min-w-0 flex-1">
-            <h1 className="text-sm font-bold text-gray-900 truncate">{candidato.nome}</h1>
+            <h1 className="text-sm font-bold text-gray-900">{candidato.nome}</h1>
             <p className="text-xs text-gray-500">{candidato.localidade}</p>
           </div>
           <Badge
